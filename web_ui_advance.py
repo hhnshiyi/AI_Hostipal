@@ -127,7 +127,6 @@ def create_interface():
     with gr.Blocks(title="AI智能回访系统") as demo:
         department=["神经内科","心血管内科"]
         gr.HTML("<h1 style='color: blue; font-size: 30px; font-weight: bold; text-align: center;'>AI智能回访系统</h1>")
-
         chatbot = gr.Chatbot([(None, DEFAULT_QUESTION)], avatar_images=("icon/病人类别.png", "icon/医生.png"))
         # 音频输入与输出部分
         with gr.Row(elem_classes="audio-row"):
