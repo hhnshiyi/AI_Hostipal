@@ -35,9 +35,8 @@ def tts(
 if __name__ == "__main__":
     tts(
         "http://10.220.138.111:8080",
-        "hello",
+        "你好",
         1111,
-
         "output.mp3",
     )
     print("See output.mp3")

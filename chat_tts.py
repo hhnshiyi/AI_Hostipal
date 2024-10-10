@@ -55,7 +55,7 @@ def get_tts(text):
         "ensure_non_empty": True,
         "stream_batch": True,
         "spk_emb": None,
-        "custom_voice": 11
+        "custom_voice": 1111
     }
     body["params_infer_code"] = params_infer_code
     try:

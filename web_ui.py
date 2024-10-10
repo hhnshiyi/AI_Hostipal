@@ -8,7 +8,9 @@ from asr_api_qwen2 import *
 import time
 from datetime import datetime
 from chat_tts_api_docker import *
+import torchaudio
 
+print(torchaudio.list_audio_backends())
 # 用户输入处理函数
 def user(user_message, history):
     """

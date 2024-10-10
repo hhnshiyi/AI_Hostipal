@@ -8,7 +8,12 @@ from asr_api_qwen2 import *
 from datetime import datetime
 from chat_tts_api_docker import *
 import time
+import os
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+print(script_dir)
+# 切换到脚本所在的目录
+os.chdir(script_dir)
 # 常量定义
 DEFAULT_QUESTION = "您好，请问是张三先生/女士或者他的亲属吗？"
 END_CONVERSATION = "若感到身体不适，请及时到医院复查。感谢您的配合，祝您身体健康，如果有任何问题随时联系我们，再见"
@@ -46,7 +51,7 @@ def bot(history):
 
     user_input = history[-1][0] if history else ""
     # 判断是否适用
-    prompt = tool.read_file("Prompt/jugement.txt").format(
+    prompt = tool.read_file(r"E:\PycharmProjects\Hospital_AI\AI_Hostipal\Prompt\jugement.txt").format(
         doctor_question=qa['question'],
         patient_answer=user_input,
         response=qa["anwsers"]
@@ -74,10 +79,14 @@ def generate_response(result_llm, qa, user_input, next_question, next_question_a
     merge_audio_list = []
 
     if "不适用" in result_llm:
+        print(result_llm)
         response_llm = generate_llm_response(qa['question'], user_input)
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        answer_audio_path = f"{AUDIO_BASE_PATH}output_{timestamp}.mp3"
+        answer_audio_path = f'E:\PycharmProjects\Hospital_AI\AI_Hostipal/audio_file\output_{timestamp}.mp3'
+        start_time=time.time()
         tts("http://10.220.138.111:8080", response_llm, 1111, answer_audio_path)
+        end_time=time.time()
+        print("生成音频时间：",end_time-start_time)
 
         if "再说一遍" in response_llm or "再问一遍" in response_llm:
             global step
@@ -114,10 +123,18 @@ def generate_llm_response(question, user_input):
 
 # 合并音频文件
 def merge_and_save_audio(audio_list):
+    print(audio_list)
     if len(audio_list) == 2:
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         output_file = f'{COMBINED_AUDIO_PATH}combined_audio_{timestamp}.wav'
-        merge_audio_files(audio_list[0], audio_list[1], output_file, 'wav')
+        # print(audio_list[0])
+        # print(audio_list[1])
+        # merge_audio_files(audio_list[0], audio_list[1], "1111.wav", 'wav')
+        file1 = r'E:\\PycharmProjects\\Hospital_AI\\AI_Hostipal\audio_file/doctor_response0_20240912175434.mp3'
+        file2 = r'E:\\PycharmProjects\\Hospital_AI\\AI_Hostipal\audio_file/doctor_question_20240912175438.mp3'
+        output_file = f'E:\PycharmProjects\Hospital_AI\AI_Hostipal\combine_audio\combined_audio_{timestamp}.wav'
+        output_format = 'wav'  # 指定输出格式为 WAV
+        merge_audio_files(file1, file2, output_file, output_format)
         return output_file
     return audio_list[0]
 

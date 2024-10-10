@@ -29,6 +29,7 @@ def get_instruct_model_api(prompt,audio_file):
 
 # 指令模型
 def get_instruct_model_api_only_audio(audio_file):
+    print("当前的输入语音文件：",audio_file)
     def add_text(text_content=None, audio_file_path=None):
         url = f"{BASE_URL}/add_text/"
         files = None
@@ -45,7 +46,7 @@ def get_instruct_model_api_only_audio(audio_file):
         response = requests.post(url)
 
         return response.json()["task_history"][-1]["content"]
-    add_text(text_content="",
+    add_text(text_content="请你直接返回你听到的内容",
              audio_file_path=audio_file)
 
     predict_response = predict()

@@ -50,8 +50,8 @@ if __name__ == "__main__":
     #
     # convert_audio(input_mp3, output_wav)
     # 合并
-    file1 = 'output/1725859426.mp3'
-    file2 = 'output/1725859431.mp3'
+    file1 = 'audio_file/doctor_response0_20240912175434.mp3'
+    file2 = 'audio_file/doctor_question_20240912175438.mp3'
     output_file = 'combined_audio.wav'
     output_format = 'wav'  # 指定输出格式为 WAV
     merge_audio_files(file1, file2, output_file, output_format)

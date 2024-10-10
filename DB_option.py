@@ -17,6 +17,7 @@ class DB:
         connection = pymysql.connect(**self.db_config)
         try:
             with connection.cursor() as cursor:
+
                 cursor.execute(query, params)
                 connection.commit()
                 return cursor.fetchall()
