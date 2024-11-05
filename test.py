@@ -4,15 +4,15 @@ import json
 from DB_option import DB
 from tools import Tools
 from audio_format_convert import *
-from asr_api_qwen2 import *
+from asr_function.asr_api_qwen2 import *
 from datetime import datetime
-from chat_tts_api_docker import *
-from asr_api_sensevoice import *
+from tts_func.chat_tts_api_docker import *
+from asr_function.asr_api_sensevoice import *
 
 import os
 import logging
 
-from cosyvoice_client import main
+from tts_func.cosyvoice_client import main
 
 # 配置日志
 logging.basicConfig(
@@ -56,8 +56,10 @@ def get_data_from_db(department_name="神经内科"):
     global messages
     logger.info(f"Fetching data for department: {department_name}")
     try:
-        messages = db.fetch_record_by_name("*", "hospital_department", department_name)
+        # messages = db.fetch_record_by_name("*", "hospital_department", department_name)
+        messages = db.fetch_records("question_anwser", "hospital_department")
 
+        logger.info(f"Fetching data for department: {messages}")
         return [(None, DEFAULT_QUESTION)]  # 重置聊天记录
     except Exception as e:
         logger.error(f"Error fetching data from DB: {e}")
@@ -65,14 +67,8 @@ def get_data_from_db(department_name="神经内科"):
 
 
 # 用户输入处理函数
-def user(message, history):
-
-    if message is not None:
-
-        history.append((message, None))
-
-    return "", history
-
+def user(user_message, history):
+    return "", history + [[user_message, None]]
 
 # 清除用户音频
 def clear_user_audio():
@@ -125,7 +121,6 @@ def bot(history):
         # 获取音频生成器
         audio_stream = main(response)  # 假设 main(response) 返回一个生成器，逐步生成音频数据
 
-
         # 遍历音频流，并逐步更新 audio_output
         for audio_chunk in audio_stream:
             logger.info(f"Generated audio chunk: {audio_chunk}")
@@ -158,7 +153,7 @@ def generate_response(result_llm, qa, user_input, next_question):
 
         else:
             index = 0 if "0" in result_llm else 1
-            response_doctor = qa["anwsers"][index]["response
+            response_doctor = qa["anwsers"][index]["response"]
 
 
             if qa['description'] == "确认姓名" and "打错了" in response_doctor:
@@ -193,20 +188,14 @@ def generate_llm_response(question, user_input):
         logger.error(f"Error generating LLM response: {e}")
         return "抱歉，无法生成回复。"
 
-def test_stream(audio):
-    print(audio)
-    return "1"
+
 # 创建 Gradio 界面
 def create_interface():
 
     with gr.Blocks(title="AI智能回访系统") as demo:
         department = ["神经内科", "心血管内科"]
         gr.HTML("<h1 style='color: blue; font-size: 30px; font-weight: bold; text-align: center;'>AI智能回访系统</h1>")
-
-
         chatbot = gr.Chatbot([(None, DEFAULT_QUESTION)], avatar_images=("icon/病人类别.png", "icon/医生.png"))
-
-
         # 音频输入与输出部分
         with gr.Row(elem_classes="audio-row"):
             audio_file_doctor = gr.Audio(
@@ -233,17 +222,16 @@ def create_interface():
 
         msg = gr.Textbox(label="Type a message or upload output")
         clear = gr.Button("Clear Chat")
-
-
         # 当学院下拉框的值改变时，更新系下拉框的选项
         department_dropdown.change(get_data_from_db, inputs=department_dropdown, outputs=chatbot)
 
         # 设置流式输入
-        audio_file_user.stream(test_stream, inputs=audio_file_user, outputs=msg)
+
+        audio_file_user.stream(speech_to_text, inputs=[audio_file_user,msg], outputs=msg)
 
         msg.submit(
             user,
-            inputs=[msg, audio_file_user, chatbot],
+            inputs=[msg, chatbot],
             outputs=[msg, chatbot],
 
         ).then(
@@ -255,10 +243,8 @@ def create_interface():
             outputs=audio_file_user
         )
 
-
-
         clear.click(reset_step, inputs=None, outputs=chatbot)
-
+        logger.info("Clear button click event set.")
 
     logger.info("Gradio interface creation completed.")
     return demo
@@ -267,14 +253,17 @@ def create_interface():
 if __name__ == '__main__':
     try:
         logger.info("Starting chatbot application.")
-        db = DB(host='localhost', user='root', password='1230', database='ai_follow-up_system')
+        # db = DB(host='localhost', user='root', password='1230', database='ai_follow-up_system')
+        db = DB(host='172.17.0.1', user='root', port=3308, password='123456', database='AI_Hospital')
+
         tool = Tools()
         logger.info("Database and Tools initialized.")
 
         demo = create_interface()
         logger.info("Launching Gradio interface.")
 
-        demo.launch(server_name="0.0.0.0", server_port=7861, ssl_certfile="cert.pem", ssl_keyfile="key.pem", ssl_verify=False)
+        # demo.launch(server_name="0.0.0.0", share=True)
+        demo.launch(server_name="0.0.0.0", share=True, server_port=7861, ssl_certfile = "cert.pem", ssl_keyfile = "key.pem", ssl_verify = False)
 
     except Exception as e:
         logger.critical(f"Unhandled exception: {e}", exc_info=True)

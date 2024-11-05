@@ -74,25 +74,6 @@ class Tools:
         mode, count = counter.most_common(1)[0]  # 获取出现频率最高的元素及其频率
         return mode
 
-    def generateprompt(self, personality, policy, party):
-        # 读取 JSON 文件
-        with open('prompt/classify_prompt_v2.json', 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        try:
-            personality = data["personality"][personality]
-            policy = data["policy"][policy]
-
-        except KeyError as e:
-            print(f"参数错误: 缺少字段 {e}")
-        # 读取文件内容
-        with open("prompt/lawyer_v2.txt", 'r', encoding='utf-8') as file:
-            content = file.read()
-
-        # 替换占位符
-        content = content.format(party=party, personality=personality, policy=policy)
-        return content
-
     def model(self, promte, model_name, format="text", n=1):
         for model in self.model_config["config"]:
             if model["name"] in model_name.lower():
